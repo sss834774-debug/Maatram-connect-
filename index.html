@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Maatram Connect - Student Availability Planner</title>
+  <style>
+    :root {
+      --primary-yellow: #FFC72C;
+      --primary-dark-yellow: #E5A800;
+      --jet-black: #121212;
+      --card-bg: #1E1E1E;
+      --pure-white: #FFFFFF;
+      --soft-gray: #F4F5F7;
+      --border-color: #E2E8F0;
+      --text-muted: #64748B;
+      --success: #16A34A;
+      --danger: #DC2626;
+      --radius: 12px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--soft-gray);
+      color: var(--jet-black);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Navigation */
+    header {
+      background-color: var(--jet-black);
+      color: var(--pure-white);
+      padding: 0.85rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 4px solid var(--primary-yellow);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge {
+      background-color: var(--primary-yellow);
+      color: var(--jet-black);
+      font-weight: 800;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--pure-white);
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* Navigation Bar */
+    nav {
+      background: var(--jet-black);
+      display: flex;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 0.4rem 0.8rem;
+      gap: 6px;
+      scrollbar-width: none;
+    }
+    nav::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-btn {
+      background: transparent;
+      border: 1px solid #333;
+      color: #BBB;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .nav-btn.active {
+      background-color: var(--primary-yellow);
+      color: var(--jet-black);
+      border-color: var(--primary-yellow);
+      font-weight: 700;
+    }
+
+    /* Main Container */
+    main {
+      flex: 1;
+      padding: 1rem;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .page {
+      display: none;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards */
+    .card {
+      background: var(--pure-white);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 1.2rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border-color);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--jet-black);
+    }
+
+    /* Highlights & Metrics */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 12px;
+      margin-bottom: 1.2rem;
+    }
+
+    .metric-card {
+      background: var(--pure-white);
+      border-radius: var(--radius);
+      padding: 1rem;
+      border: 1px solid var(--border-color);
+      border-left: 5px solid var(--primary-yellow);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+    }
+
+    .metric-card.highlight {
+      border-left-color: var(--jet-black);
+      background: #FFFDF0;
+    }
+
+    .metric-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .metric-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--jet-black);
+      margin-top: 4px;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      color: var(--jet-black);
+    }
+
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+      background: #FFF;
+      transition: border 0.2s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary-yellow);
+      box-shadow: 0 0 0 2px rgba(255, 199, 44, 0.25);
+    }
+
+    /* Checkbox & Selection Grids */
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .checkbox-pill {
+      position: relative;
+    }
+
+    .checkbox-pill input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .checkbox-pill label {
+      display: block;
+      background: #F8FAFC;
+      border: 1px solid #CBD5E1;
+      border-radius: 8px;
+      padding: 8px 10px;
+      text-align: center;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-bottom: 0;
+    }
+
+    .checkbox-pill input:checked + label {
+      background-color: var(--primary-yellow);
+      color: var(--jet-black);
+      border-color: var(--primary-dark-yellow);
+      font-weight: 700;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 11px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn:active {
+      transform: scale(0.99);
+    }
+
+    .btn-primary {
+      background-color: var(--primary-yellow);
+      color: var(--jet-black);
+    }
+
+    .btn-dark {
+      background-color: var(--jet-black);
+      color: var(--pure-white);
+    }
+
+    .btn-outline {
+      background-color: transparent;
+      border: 1px solid var(--jet-black);
+      color: var(--jet-black);
+    }
+
+    /* Responsive Tables & Lists */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.82rem;
+    }
+
+    th {
+      background-color: #F8FAFC;
+      color: var(--text-muted);
+      font-weight: 700;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: #ECEFF1;
+      color: var(--jet-black);
+      margin: 2px 2px 2px 0;
+    }
+
+    .tag-yellow {
+      background: #FFF3C4;
+      color: #8C6B00;
+    }
+
+    /* Alerts */
+    .alert {
+      padding: 10px 12px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .alert-info {
+      background: #EEF2F6;
+      border-left: 4px solid var(--jet-black);
+      color: #333;
+    }
+
+    /* Event Card Item */
+    .event-item {
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 10px;
+      background: #FAFAFA;
+      border-left: 4px solid var(--primary-yellow);
+    }
+    .event-item h4 {
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+    }
+    .event-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      padding: 1rem;
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header>
+    <div class="brand">
+      <span class="brand-badge">MF</span>
+      <div class="brand-title">Maatram Connect</div>
+    </div>
+    <div class="nav-actions">
+      <span id="userStatusTag" class="tag tag-yellow">Guest</span>
+    </div>
+  </header>
+
+  <!-- Navigation Bar -->
+  <nav id="appNav">
+    <button class="nav-btn active" onclick="navigate('page-login')">Login</button>
+    <button class="nav-btn" onclick="navigate('page-student-dash')">Dashboard</button>
+    <button class="nav-btn" onclick="navigate('page-availability')">Update Availability</button>
+    <button class="nav-btn" onclick="navigate('page-office-dash')">Office Panel</button>
+    <button class="nav-btn" onclick="navigate('page-events')">Calendar</button>
+    <button class="nav-btn" onclick="navigate('page-create-event')">Create Event</button>
+  </nav>
+
+  <!-- Main Content Areas -->
+  <main>
+
+    <!-- PAGE 1: STUDENT LOGIN -->
+    <section id="page-login" class="page active">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Student Portal Login</h2>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.2rem;">
+          Enter your name and enrolled institution to manage your volunteering availability.
+        </p>
+        <form id="studentLoginForm" onsubmit="handleStudentLogin(event)">
+          <div class="form-group">
+            <label for="studentNameInput">Full Name</label>
+            <input type="text" id="studentNameInput" placeholder="e.g., Karthik Raj" required />
+          </div>
+          <div class="form-group">
+            <label for="studentCollegeInput">College / Institution</label>
+            <input type="text" id="studentCollegeInput" placeholder="e.g., Loyola College" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Enter Dashboard</button>
+        </form>
+      </div>
+
+      <div class="card" style="background: #FFFDF0; border-left: 4px solid var(--primary-yellow);">
+        <h3 style="font-size: 0.9rem; margin-bottom: 6px;">Office / Admin Access</h3>
+        <p style="font-size: 0.8rem; color: #555; margin-bottom: 10px;">
+          Coordinators can access the office summary panel directly without student credentials.
+        </p>
+        <button class="btn btn-dark" onclick="navigate('page-office-dash')">Go to Office Team Dashboard</button>
+      </div>
+    </section>
+
+    <!-- PAGE 2: STUDENT DASHBOARD -->
+    <section id="page-student-dash" class="page">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title" id="dashStudentName">Welcome, Student</h2>
+            <p id="dashStudentCollege" style="font-size: 0.8rem; color: var(--text-muted);"></p>
+          </div>
+          <button class="btn btn-outline" style="width: auto; padding: 4px 10px; font-size: 0.75rem;" onclick="logoutStudent()">Change</button>
+        </div>
+
+        <div class="alert alert-info">
+          <span>Keep your weekly available slots updated so the team can align you with upcoming drives and sessions.</span>
+        </div>
+
+        <h3 style="font-size: 0.9rem; margin-bottom: 8px;">Your Current Registered Availability</h3>
+        <div id="studentAvailabilityDisplay" style="margin-bottom: 1rem;">
+          <!-- Injected via JS -->
+        </div>
+
+        <button class="btn btn-primary" onclick="navigate('page-availability')">Update Weekly Schedule</button>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Next Scheduled Foundation Events</h3>
+        </div>
+        <div id="studentUpcomingEventsList">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 3: WEEKLY AVAILABILITY FORM -->
+    <section id="page-availability" class="page">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Weekly Availability Planner</h2>
+        </div>
+        <form id="availabilityForm" onsubmit="handleAvailabilitySubmit(event)">
+          <div class="form-group">
+            <label>Select Available Days</label>
+            <div class="checkbox-grid">
+              <div class="checkbox-pill">
+                <input type="checkbox" id="day-Mon" value="Monday">
+                <label for="day-Mon">Monday</label>
+              </div>
+              <div class="checkbox-pill">
+                <input type="checkbox" id="day-Tue" value="Tuesday">
+                <label for="day-Tue">Tuesday</label>
+              </div>
+              <div class="checkbox-pill">
+                <input type="checkbox" id="day-Wed" value="Wednesday">
+                <label for="day-Wed">Wednesday</label>
+              </div>
+              <div class="checkbox-pill">
+                <input type="checkbox" id="day-Thu" value="Thursday">
+                <label for="day-Thu">Thursday</label>
+              </div>
+              <div class="checkbox-pill">
+                <input type="checkbox" id="day-Fri" value="Friday">
+                <label for="day-Fri">Friday</label>
+              </div>
+              <div class="checkbox-pill">
+                <input type="checkbox" id="day-Sat" value="Saturday">
+                <label for="day-Sat">Saturday</label>
+              </div>
+              <div class="checkbox-pill">
+                <input type="checkbox" id="day-Sun" value="Sunday">
+                <label for="day-Sun">Sunday</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 1.2rem;">
+            <label>Select Time Slots</label>
+            <div class="checkbox-grid">
+              <div class="checkbox-pill">
+                <input type="checkbox" id="slot-morning" value="Morning (9 AM - 1 PM)">
+                <label for="slot-morning">Morning<br><span style="font-size:0.68rem; font-weight:normal;">9 AM - 1 PM</span></label>
+              </div>
+              <div class="checkbox-pill">
+                <input type="checkbox" id="slot-afternoon" value="Afternoon (1 PM - 5 PM)">
+                <label for="slot-afternoon">Afternoon<br><span style="font-size:0.68rem; font-weight:normal;">1 PM - 5 PM</span></label>
+              </div>
+              <div class="checkbox-pill">
+                <input type="checkbox" id="slot-evening" value="Evening (5 PM - 8 PM)">
+                <label for="slot-evening">Evening<br><span style="font-size:0.68rem; font-weight:normal;">5 PM - 8 PM</span></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="availNotes">Notes (Optional)</label>
+            <input type="text" id="availNotes" placeholder="e.g., Exam week or preferred on weekends" />
+          </div>
+
+          <button type="submit" class="btn btn-primary">Save Availability</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- PAGE 4: OFFICE TEAM DASHBOARD -->
+    <section id="page-office-dash" class="page">
+      <div class="metric-grid">
+        <div class="metric-card highlight">
+          <div class="metric-label">Peak Available Day</div>
+          <div class="metric-value" id="statPeakDay">---</div>
+          <div style="font-size: 0.72rem; color: #555; margin-top: 2px;" id="statPeakCount">0 Volunteers</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Total Volunteers</div>
+          <div class="metric-value" id="statTotalStudents">0</div>
+        </div>
+        <div class="metric-card">
+          <div class="metric-label">Scheduled Events</div>
+          <div class="metric-value" id="statTotalEvents">0</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Daily Student Distribution</h2>
+        </div>
+        <div id="dayDistributionList" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">All Student Availability Records</h2>
+          <button class="btn btn-dark" style="width: auto; padding: 4px 10px; font-size: 0.75rem;" onclick="resetSampleData()">Reset Data</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Student</th>
+                <th>College</th>
+                <th>Available Days</th>
+                <th>Slots</th>
+              </tr>
+            </thead>
+            <tbody id="studentRecordsTableBody">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 5: EVENT CALENDAR -->
+    <section id="page-events" class="page">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Scheduled Foundation Events</h2>
+          <button class="btn btn-primary" style="width: auto; padding: 6px 12px; font-size: 0.8rem;" onclick="navigate('page-create-event')">+ New Event</button>
+        </div>
+        <div id="eventsContainer">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 6: EVENT CREATION PAGE -->
+    <section id="page-create-event" class="page">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title">Create New Event</h2>
+        </div>
+        <form id="createEventForm" onsubmit="handleCreateEvent(event)">
+          <div class="form-group">
+            <label for="eventName">Event Title</label>
+            <input type="text" id="eventName" placeholder="e.g., Annual Scholarship Drive" required />
+          </div>
+          <div class="form-group">
+            <label for="eventDate">Date</label>
+            <input type="date" id="eventDate" required />
+          </div>
+          <div class="form-group">
+            <label for="eventTime">Time / Shift</label>
+            <input type="text" id="eventTime" placeholder="e.g., 09:30 AM - 01:30 PM" required />
+          </div>
+          <div class="form-group">
+            <label for="eventVenue">Location / Venue</label>
+            <input type="text" id="eventVenue" placeholder="e.g., Foundation Hall / Online" required />
+          </div>
+          <div class="form-group">
+            <label for="eventDesc">Event Overview</label>
+            <textarea id="eventDesc" rows="3" placeholder="Brief briefing notes for students..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Publish Event</button>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    Maatram Connect &copy; Maatram Foundation &bull; Internal Operations Planner
+  </footer>
+
+  <script>
+    // --- STORAGE KEYS & INITIAL MOCK DATA ---
+    const STORAGE_KEY_STUDENTS = 'maatram_students_data';
+    const STORAGE_KEY_EVENTS = 'maatram_events_data';
+    const STORAGE_KEY_SESSION = 'maatram_current_student';
+
+    const INITIAL_STUDENTS = [
+      {
+        id: 'std_1',
+        name: 'Dinesh Kumar',
+        college: 'KSR College of Arts and Science',
+        days: ['Saturday', 'Sunday'],
+        slots: ['Morning (9 AM - 1 PM)', 'Afternoon (1 PM - 5 PM)'],
+        notes: 'Available for field volunteer support'
+      },
+      {
+        id: 'std_2',
+        name: 'Sneha R.',
+        college: 'Ethiraj College for Women',
+        days: ['Wednesday', 'Saturday', 'Sunday'],
+        slots: ['Afternoon (1 PM - 5 PM)', 'Evening (5 PM - 8 PM)'],
+        notes: 'Available for technical desk'
+      },
+      {
+        id: 'std_3',
+        name: 'Aravind Swamy',
+        college: 'Loyola College',
+        days: ['Saturday', 'Sunday'],
+        slots: ['Morning (9 AM - 1 PM)'],
+        notes: 'Photography & coordination'
+      },
+      {
+        id: 'std_4',
+        name: 'Priya Dharshini',
+        college: 'Madras Christian College',
+        days: ['Friday', 'Saturday'],
+        slots: ['Morning (9 AM - 1 PM)', 'Evening (5 PM - 8 PM)'],
+        notes: 'Documentation desk'
+      }
+    ];
+
+    const INITIAL_EVENTS = [
+      {
+        id: 'evt_1',
+        title: 'Career Guidance Workshop 2026',
+        date: '2026-11-28',
+        time: '09:30 AM - 01:30 PM',
+        venue: 'Chennai Central Auditorium',
+        desc: 'Assisting school pass-outs with higher education career counseling.'
+      },
+      {
+        id: 'evt_2',
+        title: 'Higher Education Scholarship Interviews',
+        date: '2026-11-29',
+        time: '08:30 AM - 04:30 PM',
+        venue: 'Maatram Office / Conference Room A',
+        desc: 'Verification desk and candidate attendance tracking.'
+      }
+    ];
+
+    // --- INITIALIZATION ---
+    function initDatabase() {
+      if (!localStorage.getItem(STORAGE_KEY_STUDENTS)) {
+        localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(INITIAL_STUDENTS));
+      }
+      if (!localStorage.getItem(STORAGE_KEY_EVENTS)) {
+        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(INITIAL_EVENTS));
+      }
+    }
+
+    function getStudents() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY_STUDENTS) || '[]');
+    }
+
+    function saveStudents(data) {
+      localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(data));
+    }
+
+    function getEvents() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY_EVENTS) || '[]');
+    }
+
+    function saveEvents(data) {
+      localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(data));
+    }
+
+    function getCurrentStudent() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY_SESSION) || 'null');
+    }
+
+    function setCurrentStudent(std) {
+      localStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(std));
+    }
+
+    // --- NAVIGATION ---
+    function navigate(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const targetPage = document.getElementById(pageId);
+      if (targetPage) targetPage.classList.add('active');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        if (onclickAttr.includes(pageId)) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      // Page refresh handlers
+      if (pageId === 'page-student-dash') loadStudentDashboard();
+      if (pageId === 'page-office-dash') loadOfficeDashboard();
+      if (pageId === 'page-events') loadEventsList();
+      if (pageId === 'page-availability') prefillAvailabilityForm();
+
+      window.scrollTo(0, 0);
+    }
+
+    // --- AUTH / STUDENT SESSION ---
+    function handleStudentLogin(e) {
+      e.preventDefault();
+      const name = document.getElementById('studentNameInput').value.trim();
+      const college = document.getElementById('studentCollegeInput').value.trim();
+
+      if (!name || !college) return;
+
+      let students = getStudents();
+      let student = students.find(s => s.name.toLowerCase() === name.toLowerCase());
+
+      if (!student) {
+        student = {
+          id: 'std_' + Date.now(),
+          name: name,
+          college: college,
+          days: [],
+          slots: [],
+          notes: ''
+        };
+        students.push(student);
+        saveStudents(students);
+      } else {
+        student.college = college;
+        saveStudents(students);
+      }
+
+      setCurrentStudent(student);
+      updateUserStatusBadge();
+      navigate('page-student-dash');
+    }
+
+    function logoutStudent() {
+      localStorage.removeItem(STORAGE_KEY_SESSION);
+      updateUserStatusBadge();
+      navigate('page-login');
+    }
+
+    function updateUserStatusBadge() {
+      const student = getCurrentStudent();
+      const badge = document.getElementById('userStatusTag');
+      if (student) {
+        badge.innerText = student.name;
+        badge.className = 'tag tag-yellow';
+      } else {
+        badge.innerText = 'Guest';
+        badge.className = 'tag';
+      }
+    }
+
+    // --- STUDENT DASHBOARD & FORM ---
+    function loadStudentDashboard() {
+      const student = getCurrentStudent();
+      if (!student) {
+        navigate('page-login');
+        return;
+      }
+
+      document.getElementById('dashStudentName').innerText = student.name;
+      document.getElementById('dashStudentCollege').innerText = student.college;
+
+      const currentStudents = getStudents();
+      const freshData = currentStudents.find(s => s.id === student.id) || student;
+
+      const container = document.getElementById('studentAvailabilityDisplay');
+      if (!freshData.days || freshData.days.length === 0) {
+        container.innerHTML = `<p style="font-size:0.82rem; color:var(--danger); font-weight:600;">No availability registered yet. Click below to update.</p>`;
+      } else {
+        const daysTags = freshData.days.map(d => `<span class="tag tag-yellow">${d}</span>`).join(' ');
+        const slotTags = freshData.slots.map(s => `<span class="tag">${s}</span>`).join(' ');
+        container.innerHTML = `
+          <div style="margin-bottom:8px;"><strong>Available Days:</strong><br>${daysTags}</div>
+          <div><strong>Time Slots:</strong><br>${slotTags}</div>
+        `;
+      }
+
+      // Render mini upcoming events
+      const events = getEvents();
+      const eventsContainer = document.getElementById('studentUpcomingEventsList');
+      if (events.length === 0) {
+        eventsContainer.innerHTML = '<p style="font-size:0.8rem; color:var(--text-muted);">No scheduled events.</p>';
+      } else {
+        eventsContainer.innerHTML = events.slice(0, 3).map(ev => `
+          <div class="event-item">
+            <h4>${ev.title}</h4>
+            <div class="event-meta">📅 ${ev.date} &bull; ⏰ ${ev.time}</div>
+            <div style="font-size: 0.8rem; color: #444;">📍 ${ev.venue}</div>
+          </div>
+        `).join('');
+      }
+    }
+
+    function prefillAvailabilityForm() {
+      const student = getCurrentStudent();
+      if (!student) {
+        alert('Please log in with your name and college first.');
+        navigate('page-login');
+        return;
+      }
+
+      const freshStudent = getStudents().find(s => s.id === student.id) || student;
+      const allDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+      allDays.forEach(day => {
+        const input = document.getElementById(`day-${day.slice(0,3)}`);
+        if (input) input.checked = (freshStudent.days || []).includes(day);
+      });
+
+      const slotMap = {
+        'Morning (9 AM - 1 PM)': 'slot-morning',
+        'Afternoon (1 PM - 5 PM)': 'slot-afternoon',
+        'Evening (5 PM - 8 PM)': 'slot-evening'
+      };
+
+      Object.keys(slotMap).forEach(slotName => {
+        const elem = document.getElementById(slotMap[slotName]);
+        if (elem) elem.checked = (freshStudent.slots || []).includes(slotName);
+      });
+
+      document.getElementById('availNotes').value = freshStudent.notes || '';
+    }
+
+    function handleAvailabilitySubmit(e) {
+      e.preventDefault();
+      const student = getCurrentStudent();
+      if (!student) return;
+
+      const selectedDays = [];
+      const dayCheckboxes = document.querySelectorAll('#availabilityForm .checkbox-grid:first-of-type input:checked');
+      dayCheckboxes.forEach(cb => selectedDays.push(cb.value));
+
+      const selectedSlots = [];
+      const slotCheckboxes = document.querySelectorAll('#availabilityForm .checkbox-grid:nth-of-type(2) input:checked');
+      slotCheckboxes.forEach(cb => selectedSlots.push(cb.value));
+
+      const notes = document.getElementById('availNotes').value.trim();
+
+      const students = getStudents();
+      const index = students.findIndex(s => s.id === student.id);
+      if (index !== -1) {
+        students[index].days = selectedDays;
+        students[index].slots = selectedSlots;
+        students[index].notes = notes;
+        saveStudents(students);
+        setCurrentStudent(students[index]);
+      }
+
+      alert('Your availability has been recorded successfully!');
+      navigate('page-student-dash');
+    }
+
+    // --- OFFICE DASHBOARD ---
+    function loadOfficeDashboard() {
+      const students = getStudents();
+      const events = getEvents();
+
+      // Metrics
+      document.getElementById('statTotalStudents').innerText = students.length;
+      document.getElementById('statTotalEvents').innerText = events.length;
+
+      // Calculate Day Distribution & Peak Day
+      const dayCounts = {
+        'Monday': 0,
+        'Tuesday': 0,
+        'Wednesday': 0,
+        'Thursday': 0,
+        'Friday': 0,
+        'Saturday': 0,
+        'Sunday': 0
+      };
+
+      students.forEach(st => {
+        (st.days || []).forEach(day => {
+          if (dayCounts[day] !== undefined) dayCounts[day]++;
+        });
+      });
+
+      let peakDay = 'None';
+      let maxCount = -1;
+      for (const [day, count] of Object.entries(dayCounts)) {
+        if (count > maxCount && count > 0) {
+          maxCount = count;
+          peakDay = day;
+        }
+      }
+
+      document.getElementById('statPeakDay').innerText = peakDay;
+      document.getElementById('statPeakCount').innerText = maxCount > 0 ? `${maxCount} Students Available` : 'No submissions yet';
+
+      // Day breakdown progress bars
+      const breakdownContainer = document.getElementById('dayDistributionList');
+      breakdownContainer.innerHTML = Object.entries(dayCounts).map(([day, count]) => {
+        const percentage = students.length > 0 ? (count / students.length) * 100 : 0;
+        const isPeak = day === peakDay && count > 0;
+        return `
+          <div>
+            <div style="display:flex; justify-content:space-between; font-size:0.8rem; font-weight:600; margin-bottom:3px;">
+              <span>${day} ${isPeak ? '<span class="tag tag-yellow">Highest</span>' : ''}</span>
+              <span>${count} student${count === 1 ? '' : 's'}</span>
+            </div>
+            <div style="background:#E2E8F0; border-radius:4px; height:8px; overflow:hidden;">
+              <div style="width:${percentage}%; height:100%; background:${isPeak ? 'var(--primary-dark-yellow)' : 'var(--jet-black)'};"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Student Table
+      const tableBody = document.getElementById('studentRecordsTableBody');
+      if (students.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted);">No student records found.</td></tr>`;
+      } else {
+        tableBody.innerHTML = students.map(s => {
+          const daysDisplay = (s.days && s.days.length)
+            ? s.days.map(d => `<span class="tag tag-yellow">${d.slice(0,3)}</span>`).join('')
+            : '<span style="color:#A0AEC0;">None</span>';
+          const slotsDisplay = (s.slots && s.slots.length)
+            ? s.slots.map(sl => `<span class="tag">${sl.split(' ')[0]}</span>`).join('')
+            : '<span style="color:#A0AEC0;">None</span>';
+
+          return `
+            <tr>
+              <td><strong>${s.name}</strong></td>
+              <td>${s.college}</td>
+              <td>${daysDisplay}</td>
+              <td>${slotsDisplay}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    function resetSampleData() {
+      if (confirm('Reset to initial sample data for demonstration?')) {
+        localStorage.setItem(STORAGE_KEY_STUDENTS, JSON.stringify(INITIAL_STUDENTS));
+        localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(INITIAL_EVENTS));
+        loadOfficeDashboard();
+      }
+    }
+
+    // --- EVENTS & CREATION ---
+    function loadEventsList() {
+      const events = getEvents();
+      const container = document.getElementById('eventsContainer');
+
+      if (events.length === 0) {
+        container.innerHTML = '<p style="font-size:0.85rem; color:var(--text-muted); text-align:center; padding:1.5rem;">No events scheduled. Use "Create Event" to add one.</p>';
+        return;
+      }
+
+      container.innerHTML = events.map(evt => `
+        <div class="event-item">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <h4>${evt.title}</h4>
+            <span class="tag tag-yellow">${evt.date}</span>
+          </div>
+          <div class="event-meta">⏰ ${evt.time} &bull; 📍 ${evt.venue}</div>
+          <p style="font-size:0.82rem; color:#4A5568; margin-top:4px;">${evt.desc || 'No additional briefing.'}</p>
+        </div>
+      `).join('');
+    }
+
+    function handleCreateEvent(e) {
+      e.preventDefault();
+      const title = document.getElementById('eventName').value.trim();
+      const date = document.getElementById('eventDate').value;
+      const time = document.getElementById('eventTime').value.trim();
+      const venue = document.getElementById('eventVenue').value.trim();
+      const desc = document.getElementById('eventDesc').value.trim();
+
+      if (!title || !date || !time || !venue) return;
+
+      const newEvent = {
+        id: 'evt_' + Date.now(),
+        title,
+        date,
+        time,
+        venue,
+        desc
+      };
+
+      const events = getEvents();
+      events.unshift(newEvent);
+      saveEvents(events);
+
+      document.getElementById('createEventForm').reset();
+      alert('Event scheduled successfully!');
+      navigate('page-events');
+    }
+
+    // --- STARTUP ---
+    window.addEventListener('DOMContentLoaded', () => {
+      initDatabase();
+      updateUserStatusBadge();
+
+      // If user is already stored in session, show their dashboard directly
+      if (getCurrentStudent()) {
+        navigate('page-student-dash');
+      } else {
+        navigate('page-login');
+      }
+    });
+  </script>
+</body>
+</html>
